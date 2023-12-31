@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/naabu/v2/pkg/result"
 	osutil "github.com/projectdiscovery/utils/os"
 )
@@ -76,7 +75,7 @@ func (r *Runner) handleNmap() error {
 			}
 
 			portsStr := strings.Join(ports, ",")
-			ipsStr := strings.Join(ips, " ")
+			_ = strings.Join(ips, " ")
 
 			args = append(args, "-p", portsStr)
 			args = append(args, ips...)
@@ -86,7 +85,7 @@ func (r *Runner) handleNmap() error {
 
 			// if requested via config file or via cli
 			if (r.options.Nmap || hasCLI) && commandCanBeExecuted {
-				gologger.Info().Msgf("Running nmap command: %s -p %s %s", command, portsStr, ipsStr)
+				//gologger.Info().Msgf("Running nmap command: %s -p %s %s", command, portsStr, ipsStr)
 				// check when user type '-nmap-cli "nmap -sV"'
 				// automatically remove nmap
 				posArgs := 0
@@ -107,11 +106,11 @@ func (r *Runner) handleNmap() error {
 				err := cmd.Run()
 				if err != nil {
 					errMsg := errors.Wrap(err, "Could not run nmap command")
-					gologger.Error().Msgf(errMsg.Error())
+					//gologger.Error().Msgf(errMsg.Error())
 					return errMsg
 				}
 			} else {
-				gologger.Info().Msgf("Suggested nmap command: %s -p %s %s", command, portsStr, ipsStr)
+				//gologger.Info().Msgf("Suggested nmap command: %s -p %s %s", command, portsStr, ipsStr)
 			}
 		}
 	}

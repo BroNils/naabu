@@ -21,7 +21,6 @@ import (
 	"github.com/projectdiscovery/blackrock"
 	"github.com/projectdiscovery/clistats"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/mapcidr"
 	"github.com/projectdiscovery/naabu/v2/pkg/port"
 	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
@@ -120,7 +119,8 @@ func NewRunner(options *Options) (*Runner, error) {
 		defaultOptions.ListenPort = options.MetricsPort
 		stats, err := clistats.NewWithOptions(context.Background(), defaultOptions)
 		if err != nil {
-			gologger.Warning().Msgf("Couldn't create progress engine: %s\n", err)
+			//gologger.Warning().Msgf("Couldn't create progress engine: %s\n", err)
+			panic(err)
 		} else {
 			runner.stats = stats
 		}
@@ -237,8 +237,8 @@ func (r *Runner) RunEnumeration() error {
 				return false
 			}
 			if r.options.PortThreshold > 0 && r.scanner.ScanResults.GetPortCount(target) >= r.options.PortThreshold {
-				hosts, _ := r.scanner.IPRanger.GetHostsByIP(target)
-				gologger.Info().Msgf("Skipping %s %v, Threshold reached \n", target, hosts)
+				_, _ = r.scanner.IPRanger.GetHostsByIP(target)
+				//gologger.Info().Msgf("Skipping %s %v, Threshold reached \n", target, hosts)
 				r.scanner.ScanResults.AddSkipped(target)
 				return false
 			}
@@ -253,12 +253,13 @@ func (r *Runner) RunEnumeration() error {
 
 		for target := range r.streamChannel {
 			if err := r.scanner.IPRanger.Add(target.Cidr); err != nil {
-				gologger.Warning().Msgf("Couldn't track %s in scan results: %s\n", target, err)
+				//gologger.Warning().Msgf("Couldn't track %s in scan results: %s\n", target, err)
+				panic(err)
 			}
 			if ipStream, err := mapcidr.IPAddressesAsStream(target.Cidr); err == nil {
 				for ip := range ipStream {
-					for _, port := range r.scanner.Ports {
-						if !handleStreamIp(ip, port) {
+					for _, port2 := range r.scanner.Ports {
+						if !handleStreamIp(ip, port2) {
 							break
 						}
 					}
@@ -278,7 +279,8 @@ func (r *Runner) RunEnumeration() error {
 		r.scanner.Phase.Set(scan.Scan)
 		for target := range r.streamChannel {
 			if err := r.scanner.IPRanger.Add(target.Cidr); err != nil {
-				gologger.Warning().Msgf("Couldn't track %s in scan results: %s\n", target, err)
+				//gologger.Warning().Msgf("Couldn't track %s in scan results: %s\n", target, err)
+				panic(err)
 			}
 			ipStream, _ := mapcidr.IPAddressesAsStream(target.Cidr)
 			for ip := range ipStream {
@@ -290,24 +292,24 @@ func (r *Runner) RunEnumeration() error {
 					shodanURL := fmt.Sprintf(shodanidb.URL, url.QueryEscape(ip))
 					request, err := retryablehttp.NewRequest(http.MethodGet, shodanURL, nil)
 					if err != nil {
-						gologger.Warning().Msgf("Couldn't create http request for %s: %s\n", ip, err)
+						//gologger.Warning().Msgf("Couldn't create http request for %s: %s\n", ip, err)
 						return
 					}
 					r.limiter.Take()
 					response, err := httpClient.Do(request)
 					if err != nil {
-						gologger.Warning().Msgf("Couldn't retrieve http response for %s: %s\n", ip, err)
+						//gologger.Warning().Msgf("Couldn't retrieve http response for %s: %s\n", ip, err)
 						return
 					}
 					if response.StatusCode != http.StatusOK {
-						gologger.Warning().Msgf("Couldn't retrieve data for %s, server replied with status code: %d\n", ip, response.StatusCode)
+						//gologger.Warning().Msgf("Couldn't retrieve data for %s, server replied with status code: %d\n", ip, response.StatusCode)
 						return
 					}
 
 					// unmarshal the response
 					data := &shodanidb.ShodanResponse{}
 					if err := json.NewDecoder(response.Body).Decode(data); err != nil {
-						gologger.Warning().Msgf("Couldn't unmarshal json data for %s: %s\n", ip, err)
+						//gologger.Warning().Msgf("Couldn't unmarshal json data for %s: %s\n", ip, err)
 						return
 					}
 
@@ -363,14 +365,15 @@ func (r *Runner) RunEnumeration() error {
 			r.stats.AddCounter("total", Range*uint64(r.options.Retries)+targetsWithPortCount)
 			r.stats.AddStatic("hosts_with_port", targetsWithPortCount)
 			if err := r.stats.Start(); err != nil {
-				gologger.Warning().Msgf("Couldn't start statistics: %s\n", err)
+				//gologger.Warning().Msgf("Couldn't start statistics: %s\n", err)
+				panic(err)
 			}
 		}
 
 		// Retries are performed regardless of the previous scan results due to network unreliability
 		for currentRetry := 0; currentRetry < r.options.Retries; currentRetry++ {
 			if currentRetry < r.options.ResumeCfg.Retry {
-				gologger.Debug().Msgf("Skipping Retry: %d\n", currentRetry)
+				//gologger.Debug().Msgf("Skipping Retry: %d\n", currentRetry)
 				continue
 			}
 
@@ -394,13 +397,13 @@ func (r *Runner) RunEnumeration() error {
 				ipIndex := xxx / int64(portsCount)
 				portIndex := int(xxx % int64(portsCount))
 				ip := r.PickIP(targets, ipIndex)
-				port := r.PickPort(portIndex)
+				pickPort := r.PickPort(portIndex)
 
 				r.options.ResumeCfg.RLock()
 				resumeCfgIndex := r.options.ResumeCfg.Index
 				r.options.ResumeCfg.RUnlock()
 				if index < resumeCfgIndex {
-					gologger.Debug().Msgf("Skipping \"%s:%d\": Resume - Port scan already completed\n", ip, port.Port)
+					//gologger.Debug().Msgf("Skipping \"%s:%d\": Resume - Port scan already completed\n", ip, pickPort.Port)
 					continue
 				}
 
@@ -414,18 +417,18 @@ func (r *Runner) RunEnumeration() error {
 					continue
 				}
 				if r.options.PortThreshold > 0 && r.scanner.ScanResults.GetPortCount(ip) >= r.options.PortThreshold {
-					hosts, _ := r.scanner.IPRanger.GetHostsByIP(ip)
-					gologger.Info().Msgf("Skipping %s %v, Threshold reached \n", ip, hosts)
+					_, _ = r.scanner.IPRanger.GetHostsByIP(ip)
+					//gologger.Info().Msgf("Skipping %s %v, Threshold reached \n", ip, hosts)
 					r.scanner.ScanResults.AddSkipped(ip)
 					continue
 				}
 
 				// connect scan
 				if shouldUseRawPackets {
-					r.RawSocketEnumeration(ip, port)
+					r.RawSocketEnumeration(ip, pickPort)
 				} else {
 					r.wgscan.Add()
-					go r.handleHostPort(ip, port)
+					go r.handleHostPort(ip, pickPort)
 				}
 				if r.options.EnableProgressBar {
 					r.stats.IncrementCounter("packets", 1)
@@ -436,14 +439,14 @@ func (r *Runner) RunEnumeration() error {
 			for _, targetWithPort := range targetsWithPort {
 				ip, p, err := net.SplitHostPort(targetWithPort)
 				if err != nil {
-					gologger.Debug().Msgf("Skipping %s: %v\n", targetWithPort, err)
+					//gologger.Debug().Msgf("Skipping %s: %v\n", targetWithPort, err)
 					continue
 				}
 
 				// naive port find
 				pp, err := strconv.Atoi(p)
 				if err != nil {
-					gologger.Debug().Msgf("Skipping %s, could not cast port %s: %v\n", targetWithPort, p, err)
+					//gologger.Debug().Msgf("Skipping %s, could not cast port %s: %v\n", targetWithPort, p, err)
 					continue
 				}
 				var portWithMetadata = port.Port{
@@ -538,7 +541,8 @@ func (r *Runner) ShowScanResultOnExit() {
 	r.handleOutput(r.scanner.ScanResults)
 	err := r.handleNmap()
 	if err != nil {
-		gologger.Fatal().Msgf("Could not run enumeration: %s\n", err)
+		//gologger.Fatal().Msgf("Could not run enumeration: %s\n", err)
+		panic(err)
 	}
 }
 
@@ -567,7 +571,7 @@ func (r *Runner) PickIP(targets []*net.IPNet, index int64) string {
 func (r *Runner) PickSubnetIP(network *net.IPNet, index int64) string {
 	ipInt, bits, err := mapcidr.IPToInteger(network.IP)
 	if err != nil {
-		gologger.Warning().Msgf("%s\n", err)
+		//gologger.Warning().Msgf("%s\n", err)
 		return ""
 	}
 	subnetIpInt := big.NewInt(0).Add(ipInt, big.NewInt(index))
@@ -612,7 +616,7 @@ func (r *Runner) RawSocketHostDiscovery(ip string) {
 func (r *Runner) RawSocketEnumeration(ip string, p *port.Port) {
 	// performs cdn/waf scan exclusions checks
 	if !r.canIScanIfCDN(ip, p) {
-		gologger.Debug().Msgf("Skipping cdn target: %s:%d\n", ip, p.Port)
+		//gologger.Debug().Msgf("Skipping cdn target: %s:%d\n", ip, p.Port)
 		return
 	}
 	r.limiter.Take()
@@ -645,7 +649,7 @@ func (r *Runner) handleHostPort(host string, p *port.Port) {
 
 	// performs cdn scan exclusions checks
 	if !r.canIScanIfCDN(host, p) {
-		gologger.Debug().Msgf("Skipping cdn target: %s:%d\n", host, p.Port)
+		//gologger.Debug().Msgf("Skipping cdn target: %s:%d\n", host, p.Port)
 		return
 	}
 
@@ -719,12 +723,12 @@ func (r *Runner) SetSourcePort(sourcePort string) error {
 		return errors.New("invalid source port")
 	}
 
-	port, err := strconv.Atoi(sourcePort)
+	port2, err := strconv.Atoi(sourcePort)
 	if err != nil {
 		return err
 	}
 
-	r.scanner.SourcePort = port
+	r.scanner.SourcePort = port2
 
 	return nil
 }
@@ -756,14 +760,14 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 		if fileutil.FolderExists(outputFolder) {
 			mkdirErr := os.MkdirAll(outputFolder, 0700)
 			if mkdirErr != nil {
-				gologger.Error().Msgf("Could not create output folder %s: %s\n", outputFolder, mkdirErr)
+				//gologger.Error().Msgf("Could not create output folder %s: %s\n", outputFolder, mkdirErr)
 				return
 			}
 		}
 
 		file, err = os.Create(output)
 		if err != nil {
-			gologger.Error().Msgf("Could not create file %s: %s\n", output, err)
+			//gologger.Error().Msgf("Could not create file %s: %s\n", output, err)
 			return
 		}
 		defer file.Close()
@@ -802,7 +806,7 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 					host = hostResult.IP
 				}
 				isCDNIP, cdnName, _ := r.scanner.CdnCheck(hostResult.IP)
-				gologger.Info().Msgf("Found %d ports on host %s (%s)\n", len(hostResult.Ports), host, hostResult.IP)
+				//gologger.Info().Msgf("Found %d ports on host %s (%s)\n", len(hostResult.Ports), host, hostResult.IP)
 				// console output
 				if r.options.JSON || r.options.CSV {
 					data := &Result{IP: hostResult.IP, TimeStamp: time.Now().UTC()}
@@ -831,16 +835,16 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 					}
 				}
 				if r.options.JSON {
-					gologger.Silent().Msgf("%s", buffer.String())
+					//gologger.Silent().Msgf("%s", buffer.String())
 				} else if r.options.CSV {
 					writer.Flush()
-					gologger.Silent().Msgf("%s", buffer.String())
+					//gologger.Silent().Msgf("%s", buffer.String())
 				} else {
-					for _, p := range hostResult.Ports {
+					for _, _ = range hostResult.Ports {
 						if r.options.OutputCDN && isCDNIP {
-							gologger.Silent().Msgf("%s:%d [%s]\n", host, p.Port, cdnName)
+							//gologger.Silent().Msgf("%s:%d [%s]\n", host, p.Port, cdnName)
 						} else {
-							gologger.Silent().Msgf("%s:%d\n", host, p.Port)
+							//gologger.Silent().Msgf("%s:%d\n", host, p.Port)
 						}
 					}
 				}
@@ -854,7 +858,8 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 						err = WriteHostOutput(host, hostResult.Ports, r.options.OutputCDN, cdnName, file)
 					}
 					if err != nil {
-						gologger.Error().Msgf("Could not write results to file %s for %s: %s\n", output, host, err)
+						//gologger.Error().Msgf("Could not write results to file %s for %s: %s\n", output, host, err)
+						panic(err)
 					}
 				}
 
@@ -878,7 +883,7 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 					host = hostIP
 				}
 				isCDNIP, cdnName, _ := r.scanner.CdnCheck(hostIP)
-				gologger.Info().Msgf("Found alive host %s (%s)\n", host, hostIP)
+				//gologger.Info().Msgf("Found alive host %s (%s)\n", host, hostIP)
 				// console output
 				if r.options.JSON || r.options.CSV {
 					data := &Result{IP: hostIP, TimeStamp: time.Now().UTC()}
@@ -891,15 +896,15 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 					}
 				}
 				if r.options.JSON {
-					gologger.Silent().Msgf("%s", buffer.String())
+					//gologger.Silent().Msgf("%s", buffer.String())
 				} else if r.options.CSV {
 					writer.Flush()
-					gologger.Silent().Msgf("%s", buffer.String())
+					//gologger.Silent().Msgf("%s", buffer.String())
 				} else {
 					if r.options.OutputCDN && isCDNIP {
-						gologger.Silent().Msgf("%s [%s]\n", host, cdnName)
+						//gologger.Silent().Msgf("%s [%s]\n", host, cdnName)
 					} else {
-						gologger.Silent().Msgf("%s\n", host)
+						//gologger.Silent().Msgf("%s\n", host)
 					}
 				}
 				// file output
@@ -912,7 +917,8 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 						err = WriteHostOutput(host, nil, r.options.OutputCDN, cdnName, file)
 					}
 					if err != nil {
-						gologger.Error().Msgf("Could not write results to file %s for %s: %s\n", output, host, err)
+						//gologger.Error().Msgf("Could not write results to file %s for %s: %s\n", output, host, err)
+						panic(err)
 					}
 				}
 
@@ -929,24 +935,26 @@ func (r *Runner) handleOutput(scanResults *result.Result) {
 func writeCSVHeaders(data *Result, writer *csv.Writer) {
 	headers, err := data.CSVHeaders()
 	if err != nil {
-		gologger.Error().Msgf(err.Error())
+		//gologger.Error().Msgf(err.Error())
 		return
 	}
 
 	if err := writer.Write(headers); err != nil {
 		errMsg := errors.Wrap(err, "Could not write headers")
-		gologger.Error().Msgf(errMsg.Error())
+		//gologger.Error().Msgf(errMsg.Error())
+		panic(errMsg)
 	}
 }
 
 func writeCSVRow(data *Result, writer *csv.Writer) {
 	rowData, err := data.CSVFields()
 	if err != nil {
-		gologger.Error().Msgf(err.Error())
+		//gologger.Error().Msgf(err.Error())
 		return
 	}
 	if err := writer.Write(rowData); err != nil {
 		errMsg := errors.Wrap(err, "Could not write row")
-		gologger.Error().Msgf(errMsg.Error())
+		//gologger.Error().Msgf(errMsg.Error())
+		panic(errMsg)
 	}
 }

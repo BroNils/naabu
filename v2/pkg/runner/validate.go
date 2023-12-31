@@ -12,10 +12,6 @@ import (
 	iputil "github.com/projectdiscovery/utils/ip"
 	osutil "github.com/projectdiscovery/utils/os"
 	sliceutil "github.com/projectdiscovery/utils/slice"
-
-	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/gologger/formatter"
-	"github.com/projectdiscovery/gologger/levels"
 )
 
 var (
@@ -134,7 +130,7 @@ func (options *Options) ValidateOptions() error {
 	}
 
 	if options.Proxy != "" && options.ScanType == SynScan {
-		gologger.Warning().Msgf("Syn Scan can't be used with socks proxy: falling back to connect scan")
+		//gologger.Warning().Msgf("Syn Scan can't be used with socks proxy: falling back to connect scan")
 		options.ScanType = ConnectScan
 	}
 
@@ -145,13 +141,13 @@ func (options *Options) ValidateOptions() error {
 func (options *Options) configureOutput() {
 	// If the user desires verbose output, show verbose output
 	if options.Verbose {
-		gologger.DefaultLogger.SetMaxLevel(levels.LevelVerbose)
+		//gologger.DefaultLogger.SetMaxLevel(levels.LevelVerbose)
 	}
 	if options.NoColor {
-		gologger.DefaultLogger.SetFormatter(formatter.NewCLI(true))
+		//gologger.DefaultLogger.SetFormatter(formatter.NewCLI(true))
 	}
 	if options.Silent {
-		gologger.DefaultLogger.SetMaxLevel(levels.LevelSilent)
+		//gologger.DefaultLogger.SetMaxLevel(levels.LevelSilent)
 	}
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/projectdiscovery/gologger"
 )
 
 func init() {
@@ -22,7 +21,7 @@ func ArpRequestAsync(s *Scanner, ip string) {
 		err = errors.New("Could not send ARP Request packet to " + ip + ": no interface with outbound source found")
 	}
 	if err != nil {
-		gologger.Debug().Msgf("%s\n", err)
+		//gologger.Debug().Msgf("%s\n", err)
 		return
 	}
 	// network layers
@@ -52,7 +51,7 @@ func ArpRequestAsync(s *Scanner, ip string) {
 
 	err = gopacket.SerializeLayers(buf, opts, &eth, &arp)
 	if err != nil {
-		gologger.Warning().Msgf("%s\n", err)
+		//gologger.Warning().Msgf("%s\n", err)
 		return
 	}
 	// send the packet out on every interface
@@ -60,7 +59,7 @@ func ArpRequestAsync(s *Scanner, ip string) {
 		for _, handler := range handlers.EthernetActive {
 			err := handler.WritePacketData(buf.Bytes())
 			if err != nil {
-				gologger.Warning().Msgf("%s\n", err)
+				//gologger.Warning().Msgf("%s\n", err)
 			}
 		}
 	}

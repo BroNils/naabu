@@ -15,7 +15,6 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/projectdiscovery/cdncheck"
 	"github.com/projectdiscovery/freeport"
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/ipranger"
 	"github.com/projectdiscovery/naabu/v2/pkg/port"
 	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
@@ -139,9 +138,9 @@ var (
 	setupHandlerCallback                    func(s *Scanner, interfaceName, bpfFilter string, protocols ...protocol.Protocol) error
 	tcpReadWorkerPCAPCallback               func(s *Scanner)
 	cleanupHandlersCallback                 func(s *Scanner)
-	pingIcmpEchoRequestCallback             func(ip string, timeout time.Duration) bool //nolint
+	_                                       func(ip string, timeout time.Duration) bool //nolint
 	pingIcmpEchoRequestAsyncCallback        func(s *Scanner, ip string)
-	pingIcmpTimestampRequestCallback        func(ip string, timeout time.Duration) bool //nolint
+	_                                       func(ip string, timeout time.Duration) bool //nolint
 	pingIcmpTimestampRequestAsyncCallback   func(s *Scanner, ip string)
 	pingIcmpAddressMaskRequestAsyncCallback func(s *Scanner, ip string)
 	arpRequestAsyncCallback                 func(s *Scanner, ip string)
@@ -323,10 +322,10 @@ func (s *Scanner) EnqueueEthernet(ip string, pkgtype PkgFlag) {
 
 // EnqueueTCP outgoing TCP packets
 func (s *Scanner) EnqueueTCP(ip string, pkgtype PkgFlag, ports ...*port.Port) {
-	for _, port := range ports {
+	for _, port2 := range ports {
 		s.transportPacketSend <- &PkgSend{
 			ip:   ip,
-			port: port,
+			port: port2,
 			flag: pkgtype,
 		}
 	}
@@ -334,10 +333,10 @@ func (s *Scanner) EnqueueTCP(ip string, pkgtype PkgFlag, ports ...*port.Port) {
 
 // EnqueueTCP outgoing TCP packets
 func (s *Scanner) EnqueueUDP(ip string, ports ...*port.Port) {
-	for _, port := range ports {
+	for _, port2 := range ports {
 		s.transportPacketSend <- &PkgSend{
 			ip:   ip,
-			port: port,
+			port: port2,
 		}
 	}
 }
@@ -447,7 +446,7 @@ func (s *Scanner) ICMPReadWorker6() {
 func (s *Scanner) ICMPResultWorker() {
 	for ip := range s.hostDiscoveryChan {
 		if s.Phase.Is(HostDiscovery) {
-			gologger.Debug().Msgf("Received ICMP response from %s\n", ip.ip)
+			//gologger.Debug().Msgf("Received ICMP response from %s\n", ip.ip)
 			s.HostDiscoveryResults.AddIp(ip.ip)
 		}
 	}
@@ -457,10 +456,10 @@ func (s *Scanner) ICMPResultWorker() {
 func (s *Scanner) TCPResultWorker() {
 	for ip := range s.tcpChan {
 		if s.Phase.Is(HostDiscovery) {
-			gologger.Debug().Msgf("Received Transport (TCP|UDP) probe response from %s:%d\n", ip.ip, ip.port.Port)
+			//gologger.Debug().Msgf("Received Transport (TCP|UDP) probe response from %s:%d\n", ip.ip, ip.port.Port)
 			s.HostDiscoveryResults.AddIp(ip.ip)
 		} else if s.Phase.Is(Scan) || s.stream {
-			gologger.Debug().Msgf("Received Transport (TCP) scan response from %s:%d\n", ip.ip, ip.port.Port)
+			//gologger.Debug().Msgf("Received Transport (TCP) scan response from %s:%d\n", ip.ip, ip.port.Port)
 			s.ScanResults.AddPort(ip.ip, ip.port)
 		}
 	}
@@ -470,10 +469,10 @@ func (s *Scanner) TCPResultWorker() {
 func (s *Scanner) UDPResultWorker() {
 	for ip := range s.udpChan {
 		if s.Phase.Is(HostDiscovery) {
-			gologger.Debug().Msgf("Received UDP probe response from %s:%d\n", ip.ip, ip.port.Port)
+			//gologger.Debug().Msgf("Received UDP probe response from %s:%d\n", ip.ip, ip.port.Port)
 			s.HostDiscoveryResults.AddIp(ip.ip)
 		} else if s.Phase.Is(Scan) || s.stream {
-			gologger.Debug().Msgf("Received Transport (UDP) scan response from %s:%d\n", ip.ip, ip.port.Port)
+			//gologger.Debug().Msgf("Received Transport (UDP) scan response from %s:%d\n", ip.ip, ip.port.Port)
 			s.ScanResults.AddPort(ip.ip, ip.port)
 		}
 	}
@@ -507,8 +506,8 @@ send:
 
 // ScanSyn a target ip
 func (s *Scanner) ScanSyn(ip string) {
-	for _, port := range s.Ports {
-		s.EnqueueTCP(ip, Syn, port)
+	for _, port2 := range s.Ports {
+		s.EnqueueTCP(ip, Syn, port2)
 	}
 }
 
@@ -661,7 +660,7 @@ func (s *Scanner) ACKPort(dstIP string, port int, timeout time.Duration) (bool, 
 		// not matching ip
 		if addr.String() != dstIP {
 			if s.debug {
-				gologger.Debug().Msgf("Discarding TCP packet from non target ip %s for %s\n", dstIP, addr.String())
+				//gologger.Debug().Msgf("Discarding TCP packet from non target ip %s for %s\n", dstIP, addr.String())
 			}
 			continue
 		}
@@ -675,12 +674,12 @@ func (s *Scanner) ACKPort(dstIP string, port int, timeout time.Duration) (bool, 
 			// We consider only incoming packets
 			if tcp.DstPort != layers.TCPPort(rawPort.Port) {
 				if s.debug {
-					gologger.Debug().Msgf("Discarding TCP packet from %s:%d not matching %s:%d port\n", addr.String(), tcp.DstPort, dstIP, rawPort.Port)
+					//gologger.Debug().Msgf("Discarding TCP packet from %s:%d not matching %s:%d port\n", addr.String(), tcp.DstPort, dstIP, rawPort.Port)
 				}
 				continue
 			} else if tcp.RST {
 				if s.debug {
-					gologger.Debug().Msgf("Accepting RST packet from %s:%d\n", addr.String(), tcp.DstPort)
+					//gologger.Debug().Msgf("Accepting RST packet from %s:%d\n", addr.String(), tcp.DstPort)
 					return true, nil
 				}
 			}
@@ -721,10 +720,10 @@ func (s *Scanner) sendAsyncTCP4(ip string, p *port.Port, pkgFlag PkgFlag) {
 	} else {
 		_, _, sourceIP, err := s.Router.Route(ip4.DstIP)
 		if err != nil {
-			gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
 			return
 		} else if sourceIP == nil {
-			gologger.Debug().Msgf("could not find correct source ipv4 for %s:%d\n", ip, p.Port)
+			//gologger.Debug().Msgf("could not find correct source ipv4 for %s:%d\n", ip, p.Port)
 			return
 		}
 		ip4.SrcIP = sourceIP
@@ -753,13 +752,13 @@ func (s *Scanner) sendAsyncTCP4(ip string, p *port.Port, pkgFlag PkgFlag) {
 	err := tcp.SetNetworkLayerForChecksum(&ip4)
 	if err != nil {
 		if s.debug {
-			gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
 		}
 	} else {
 		err = s.send(ip, s.tcpPacketListener4, &tcp)
 		if err != nil {
 			if s.debug {
-				gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
+				//gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
 			}
 		}
 	}
@@ -778,10 +777,10 @@ func (s *Scanner) sendAsyncUDP4(ip string, p *port.Port, pkgFlag PkgFlag) {
 	} else {
 		_, _, sourceIP, err := s.Router.Route(ip4.DstIP)
 		if err != nil {
-			gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
 			return
 		} else if sourceIP == nil {
-			gologger.Debug().Msgf("could not find correct source ipv4 for %s:%d\n", ip, p.Port)
+			//gologger.Debug().Msgf("could not find correct source ipv4 for %s:%d\n", ip, p.Port)
 			return
 		}
 		ip4.SrcIP = sourceIP
@@ -795,13 +794,13 @@ func (s *Scanner) sendAsyncUDP4(ip string, p *port.Port, pkgFlag PkgFlag) {
 	err := udp.SetNetworkLayerForChecksum(&ip4)
 	if err != nil {
 		if s.debug {
-			gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
 		}
 	} else {
 		err = s.send(ip, s.udpPacketListener4, &udp)
 		if err != nil {
 			if s.debug {
-				gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
+				//gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
 			}
 		}
 	}
@@ -821,10 +820,10 @@ func (s *Scanner) sendAsyncTCP6(ip string, p *port.Port, pkgFlag PkgFlag) {
 	} else {
 		_, _, sourceIP, err := s.Router.Route(ip6.DstIP)
 		if err != nil {
-			gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
 			return
 		} else if sourceIP == nil {
-			gologger.Debug().Msgf("could not find correct source ipv6 for %s:%d\n", ip, p.Port)
+			//gologger.Debug().Msgf("could not find correct source ipv6 for %s:%d\n", ip, p.Port)
 			return
 		}
 		ip6.SrcIP = sourceIP
@@ -853,13 +852,13 @@ func (s *Scanner) sendAsyncTCP6(ip string, p *port.Port, pkgFlag PkgFlag) {
 	err := tcp.SetNetworkLayerForChecksum(&ip6)
 	if err != nil {
 		if s.debug {
-			gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
 		}
 	} else {
 		err = s.send(ip, s.tcpPacketListener6, &tcp)
 		if err != nil {
 			if s.debug {
-				gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
+				//gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
 			}
 		}
 	}
@@ -879,10 +878,10 @@ func (s *Scanner) sendAsyncUDP6(ip string, p *port.Port, pkgFlag PkgFlag) {
 	} else {
 		_, _, sourceIP, err := s.Router.Route(ip6.DstIP)
 		if err != nil {
-			gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("could not find route to host %s:%d: %s\n", ip, p.Port, err)
 			return
 		} else if sourceIP == nil {
-			gologger.Debug().Msgf("could not find correct source ipv6 for %s:%d\n", ip, p.Port)
+			//gologger.Debug().Msgf("could not find correct source ipv6 for %s:%d\n", ip, p.Port)
 			return
 		}
 		ip6.SrcIP = sourceIP
@@ -896,13 +895,13 @@ func (s *Scanner) sendAsyncUDP6(ip string, p *port.Port, pkgFlag PkgFlag) {
 	err := udp.SetNetworkLayerForChecksum(&ip6)
 	if err != nil {
 		if s.debug {
-			gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
+			//gologger.Debug().Msgf("Can not set network layer for %s:%d port: %s\n", ip, p.Port, err)
 		}
 	} else {
 		err = s.send(ip, s.udpPacketListener6, &udp)
 		if err != nil {
 			if s.debug {
-				gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
+				//gologger.Debug().Msgf("Can not send packet to %s:%d port: %s\n", ip, p.Port, err)
 			}
 		}
 	}
@@ -926,7 +925,7 @@ func (s *Scanner) SetupHandlers() error {
 			continue
 		}
 		if err := s.SetupHandler(itf.Name); err != nil {
-			gologger.Warning().Msgf("Error on interface %s: %s", itf.Name, err)
+			//gologger.Warning().Msgf("Error on interface %s: %s", itf.Name, err)
 		}
 	}
 

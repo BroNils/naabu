@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/projectdiscovery/gologger"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv6"
 )
@@ -24,7 +23,7 @@ func PingNdpRequestAsync(s *Scanner, ip string) {
 		err = errors.New("Could not send PingNdp Request packet to " + ip + ": no interface with outbound source found")
 	}
 	if err != nil {
-		gologger.Debug().Msgf("%s\n", err)
+		//gologger.Debug().Msgf("%s\n", err)
 		return
 	}
 	destAddr := &net.UDPAddr{IP: net.ParseIP(ip), Zone: networkInterface.Name}

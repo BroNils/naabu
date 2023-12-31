@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/mapcidr/asn"
 	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
 	"github.com/projectdiscovery/naabu/v2/pkg/scan"
@@ -31,7 +30,7 @@ func (r *Runner) Load() error {
 	// pre-process all targets (resolves all non fqdn targets to ip address)
 	err = r.PreProcessTargets()
 	if err != nil {
-		gologger.Warning().Msgf("%s\n", err)
+		//gologger.Warning().Msgf("%s\n", err)
 	}
 
 	return nil
@@ -97,7 +96,7 @@ func (r *Runner) PreProcessTargets() error {
 		func(target string) {
 			defer wg.Done()
 			if err := r.AddTarget(target); err != nil {
-				gologger.Warning().Msgf("%s\n", err)
+				//gologger.Warning().Msgf("%s\n", err)
 			}
 		}(s.Text())
 	}
@@ -121,7 +120,7 @@ func (r *Runner) AddTarget(target string) error {
 			if r.options.Stream {
 				r.streamChannel <- Target{Cidr: cidr.String()}
 			} else if err := r.scanner.IPRanger.AddHostWithMetadata(cidr.String(), "cidr"); err != nil { // Add cidr directly to ranger, as single ips would allocate more resources later
-				gologger.Warning().Msgf("%s\n", err)
+				//gologger.Warning().Msgf("%s\n", err)
 			}
 		}
 		return nil
@@ -130,7 +129,7 @@ func (r *Runner) AddTarget(target string) error {
 		if r.options.Stream {
 			r.streamChannel <- Target{Cidr: target}
 		} else if err := r.scanner.IPRanger.AddHostWithMetadata(target, "cidr"); err != nil { // Add cidr directly to ranger, as single ips would allocate more resources later
-			gologger.Warning().Msgf("%s\n", err)
+			//gologger.Warning().Msgf("%s\n", err)
 		}
 		return nil
 	}
@@ -147,14 +146,14 @@ func (r *Runner) AddTarget(target string) error {
 			if r.options.ReversePTR {
 				names, err := iputil.ToFQDN(target)
 				if err != nil {
-					gologger.Debug().Msgf("reverse ptr failed for %s: %s\n", target, err)
+					//gologger.Debug().Msgf("reverse ptr failed for %s: %s\n", target, err)
 				} else {
 					metadata = strings.Trim(names[0], ".")
 				}
 			}
 			err := r.scanner.IPRanger.AddHostWithMetadata(target, metadata)
 			if err != nil {
-				gologger.Warning().Msgf("%s\n", err)
+				//gologger.Warning().Msgf("%s\n", err)
 			}
 		}
 		return nil
@@ -178,27 +177,27 @@ func (r *Runner) AddTarget(target string) error {
 				if len(r.options.Ports) > 0 {
 					r.streamChannel <- Target{Cidr: iputil.ToCidr(ip).String()}
 					if err := r.scanner.IPRanger.AddHostWithMetadata(joinHostPort(ip, ""), target); err != nil {
-						gologger.Warning().Msgf("%s\n", err)
+						//gologger.Warning().Msgf("%s\n", err)
 					}
 				}
 			} else {
 				r.streamChannel <- Target{Cidr: iputil.ToCidr(ip).String()}
 				if err := r.scanner.IPRanger.AddHostWithMetadata(joinHostPort(ip, port), target); err != nil {
-					gologger.Warning().Msgf("%s\n", err)
+					//gologger.Warning().Msgf("%s\n", err)
 				}
 			}
 		} else if hasPort {
 			if len(r.options.Ports) > 0 {
 				if err := r.scanner.IPRanger.AddHostWithMetadata(joinHostPort(ip, ""), target); err != nil {
-					gologger.Warning().Msgf("%s\n", err)
+					//gologger.Warning().Msgf("%s\n", err)
 				}
 			} else {
 				if err := r.scanner.IPRanger.AddHostWithMetadata(joinHostPort(ip, port), target); err != nil {
-					gologger.Warning().Msgf("%s\n", err)
+					//gologger.Warning().Msgf("%s\n", err)
 				}
 			}
 		} else if err := r.scanner.IPRanger.AddHostWithMetadata(ip, target); err != nil {
-			gologger.Warning().Msgf("%s\n", err)
+			//gologger.Warning().Msgf("%s\n", err)
 		}
 	}
 
@@ -226,7 +225,7 @@ func (r *Runner) resolveFQDN(target string) ([]string, error) {
 	)
 	for _, ip := range ipsV4 {
 		if !r.scanner.IPRanger.Np.ValidateAddress(ip) {
-			gologger.Warning().Msgf("Skipping host %s as ip %s was excluded\n", target, ip)
+			//gologger.Warning().Msgf("Skipping host %s as ip %s was excluded\n", target, ip)
 			continue
 		}
 
@@ -234,7 +233,7 @@ func (r *Runner) resolveFQDN(target string) ([]string, error) {
 	}
 	for _, ip := range ipsV6 {
 		if !r.scanner.IPRanger.Np.ValidateAddress(ip) {
-			gologger.Warning().Msgf("Skipping host %s as ip %s was excluded\n", target, ip)
+			//gologger.Warning().Msgf("Skipping host %s as ip %s was excluded\n", target, ip)
 			continue
 		}
 
@@ -249,24 +248,24 @@ func (r *Runner) resolveFQDN(target string) ([]string, error) {
 		// Scan the hosts found for ping probes
 		pingResults, err := scan.PingHosts(initialHosts)
 		if err != nil {
-			gologger.Warning().Msgf("Could not perform ping scan on %s: %s\n", target, err)
+			//gologger.Warning().Msgf("Could not perform ping scan on %s: %s\n", target, err)
 			return []string{}, err
 		}
 		for _, result := range pingResults.Hosts {
 			if result.Type == scan.HostActive {
-				gologger.Debug().Msgf("Ping probe succeed for %s: latency=%s\n", result.Host, result.Latency)
+				//gologger.Debug().Msgf("Ping probe succeed for %s: latency=%s\n", result.Host, result.Latency)
 			} else {
-				gologger.Debug().Msgf("Ping probe failed for %s: error=%s\n", result.Host, result.Error)
+				//gologger.Debug().Msgf("Ping probe failed for %s: error=%s\n", result.Host, result.Error)
 			}
 		}
 
 		// Get the fastest host in the list of hosts
 		fastestHost, err := pingResults.GetFastestHost()
 		if err != nil {
-			gologger.Warning().Msgf("No active host found for %s: %s\n", target, err)
+			//gologger.Warning().Msgf("No active host found for %s: %s\n", target, err)
 			return []string{}, err
 		}
-		gologger.Info().Msgf("Fastest host found for target: %s (%s)\n", fastestHost.Host, fastestHost.Latency)
+		//gologger.Info().Msgf("Fastest host found for target: %s (%s)\n", fastestHost.Host, fastestHost.Latency)
 		hostIPS = append(hostIPS, fastestHost.Host)
 	} else if r.options.ScanAllIPS {
 		hostIPS = append(initialHosts, initialHostsV6...)
@@ -281,7 +280,7 @@ func (r *Runner) resolveFQDN(target string) ([]string, error) {
 
 	for _, hostIP := range hostIPS {
 		if r.scanner.IPRanger.Contains(hostIP) {
-			gologger.Debug().Msgf("Using ip %s for host %s enumeration\n", hostIP, target)
+			//gologger.Debug().Msgf("Using ip %s for host %s enumeration\n", hostIP, target)
 		}
 	}
 

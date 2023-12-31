@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projectdiscovery/gologger"
 	iputil "github.com/projectdiscovery/utils/ip"
 	osutil "github.com/projectdiscovery/utils/os"
 	sliceutil "github.com/projectdiscovery/utils/slice"
@@ -16,7 +15,7 @@ func (r *Runner) host2ips(target string) (targetIPsV4 []string, targetIPsV6 []st
 	if !iputil.IsIP(target) {
 		dnsData, err := r.dnsclient.QueryMultiple(target)
 		if err != nil || dnsData == nil {
-			gologger.Warning().Msgf("Could not get IP for host: %s\n", target)
+			//gologger.Warning().Msgf("Could not get IP for host: %s\n", target)
 			return nil, nil, err
 		}
 		if len(r.options.IPVersion) > 0 {
@@ -34,7 +33,7 @@ func (r *Runner) host2ips(target string) (targetIPsV4 []string, targetIPsV6 []st
 		}
 	} else {
 		targetIPsV4 = append(targetIPsV6, target)
-		gologger.Debug().Msgf("Found %d addresses for %s\n", len(targetIPsV4), target)
+		//gologger.Debug().Msgf("Found %d addresses for %s\n", len(targetIPsV4), target)
 	}
 
 	return

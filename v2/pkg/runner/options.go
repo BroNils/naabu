@@ -9,7 +9,6 @@ import (
 	fileutil "github.com/projectdiscovery/utils/file"
 
 	"github.com/projectdiscovery/goflags"
-	"github.com/projectdiscovery/gologger"
 	updateutils "github.com/projectdiscovery/utils/update"
 )
 
@@ -204,7 +203,7 @@ func ParseOptions() *Options {
 	_ = flagSet.Parse()
 
 	if options.HealthCheck {
-		gologger.Print().Msgf("%s\n", DoHealthCheck(options, flagSet))
+		//gologger.Print().Msgf("%s\n", DoHealthCheck(options, flagSet))
 		os.Exit(0)
 	}
 
@@ -219,25 +218,26 @@ func ParseOptions() *Options {
 	options.ResumeCfg = NewResumeCfg()
 	if options.ShouldLoadResume() {
 		if err := options.ResumeCfg.ConfigureResume(); err != nil {
-			gologger.Fatal().Msgf("%s\n", err)
+			//gologger.Fatal().Msgf("%s\n", err)
+			panic(err)
 		}
 	}
 	// Show the user the banner
 	showBanner()
 
 	if options.Version {
-		gologger.Info().Msgf("Current Version: %s\n", version)
+		//gologger.Info().Msgf("Current Version: %s\n", version)
 		os.Exit(0)
 	}
 
 	if !options.DisableUpdateCheck {
-		latestVersion, err := updateutils.GetToolVersionCallback("naabu", version)()
+		_, err := updateutils.GetToolVersionCallback("naabu", version)()
 		if err != nil {
 			if options.Verbose {
-				gologger.Error().Msgf("naabu version check failed: %v", err.Error())
+				//gologger.Error().Msgf("naabu version check failed: %v", err.Error())
 			}
 		} else {
-			gologger.Info().Msgf("Current naabu version %v %v", version, updateutils.GetVersionDescription(version, latestVersion))
+			//gologger.Info().Msgf("Current naabu version %v %v", version, updateutils.GetVersionDescription(version, latestVersion))
 		}
 	}
 
@@ -245,7 +245,7 @@ func ParseOptions() *Options {
 	if options.InterfacesList {
 		err := showNetworkInterfaces()
 		if err != nil {
-			gologger.Error().Msgf("Could not get network interfaces: %s\n", err)
+			//gologger.Error().Msgf("Could not get network interfaces: %s\n", err)
 		}
 		os.Exit(0)
 	}
@@ -254,7 +254,8 @@ func ParseOptions() *Options {
 	// invalid options have been used, exit.
 	err := options.ValidateOptions()
 	if err != nil {
-		gologger.Fatal().Msgf("Program exiting: %s\n", err)
+		//gologger.Fatal().Msgf("Program exiting: %s\n", err)
+		panic(err)
 	}
 
 	return options

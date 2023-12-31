@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/naabu/v2/pkg/port"
 )
 
@@ -16,7 +15,7 @@ func (s *Scanner) ConnectVerify(host string, ports []*port.Port) []*port.Port {
 		if err != nil {
 			continue
 		}
-		gologger.Debug().Msgf("Validated active port %d on %s\n", p.Port, host)
+		//gologger.Debug().Msgf("Validated active port %d on %s\n", p.Port, host)
 		conn.Close()
 		verifiedPorts = append(verifiedPorts, p)
 	}

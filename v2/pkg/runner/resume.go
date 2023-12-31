@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/projectdiscovery/gologger"
 	fileutil "github.com/projectdiscovery/utils/file"
 )
 
@@ -56,7 +55,7 @@ func (resumeCfg *ResumeCfg) SaveResumeConfig() error {
 
 // ConfigureResume read the resume config file
 func (resumeCfg *ResumeCfg) ConfigureResume() error {
-	gologger.Info().Msg("Resuming from save checkpoint")
+	//gologger.Info().Msg("Resuming from save checkpoint")
 	file, err := os.ReadFile(DefaultResumeFilePath())
 	if err != nil {
 		return err

@@ -15,7 +15,6 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/projectdiscovery/freeport"
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/naabu/v2/pkg/port"
 	"github.com/projectdiscovery/naabu/v2/pkg/protocol"
 	"github.com/projectdiscovery/naabu/v2/pkg/routing"
@@ -197,7 +196,7 @@ func TransportReadWorkerPCAPUnix(s *Scanner) {
 		sourcePortMatches := tcpPortMatches || udpPortMatches
 		switch {
 		case !sourcePortMatches:
-			gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s tcp_dport=%d udp_dport=%d\n", srcIP4, srcIP6, tcp.DstPort, udp.DstPort)
+			//gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s tcp_dport=%d udp_dport=%d\n", srcIP4, srcIP6, tcp.DstPort, udp.DstPort)
 
 		case s.Phase.Is(HostDiscovery):
 			proto := protocol.TCP
@@ -264,7 +263,7 @@ func TransportReadWorkerPCAPUnix(s *Scanner) {
 					} else if isIP6InRange {
 						ip = srcIP6
 					} else {
-						gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s\n", srcIP4, srcIP6)
+						//gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s\n", srcIP4, srcIP6)
 					}
 					transportReaderCallback(*tcp, *udp, ip, srcIP4, srcIP6)
 				}
@@ -335,7 +334,7 @@ func TransportReadWorkerPCAPUnix(s *Scanner) {
 							} else if isIP6InRange {
 								ip = srcIP6
 							} else {
-								gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s\n", srcIP4, srcIP6)
+								//gologger.Debug().Msgf("Discarding Transport packet from non target ips: ip4=%s ip6=%s\n", srcIP4, srcIP6)
 								continue
 							}
 							transportReaderCallback(tcp, udp, ip, srcIP4, srcIP6)
@@ -398,7 +397,7 @@ func TransportReadWorkerPCAPUnix(s *Scanner) {
 							if isIP4InRange {
 								ip = srcIP4.String()
 							} else {
-								gologger.Debug().Msgf("Discarding ARP packet from non target ip: ip4=%s mac=%s\n", srcIP4, srcMac)
+								//gologger.Debug().Msgf("Discarding ARP packet from non target ip: ip4=%s mac=%s\n", srcIP4, srcMac)
 								continue
 							}
 

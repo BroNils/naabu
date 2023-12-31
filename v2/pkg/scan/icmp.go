@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/projectdiscovery/gologger"
 	iputil "github.com/projectdiscovery/utils/ip"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
@@ -23,9 +22,9 @@ const (
 )
 
 func init() {
-	pingIcmpEchoRequestCallback = PingIcmpEchoRequest
+	_ = PingIcmpEchoRequest
 	pingIcmpEchoRequestAsyncCallback = PingIcmpEchoRequestAsync
-	pingIcmpTimestampRequestCallback = PingIcmpTimestampRequest
+	_ = PingIcmpTimestampRequest
 	pingIcmpTimestampRequestAsyncCallback = PingIcmpTimestampRequestAsync
 	pingIcmpAddressMaskRequestAsyncCallback = PingIcmpAddressMaskRequestAsync
 	pingNdpRequestAsyncCallback = PingNdpRequestAsync
@@ -104,7 +103,7 @@ func PingIcmpEchoRequestAsync(s *Scanner, ip string) {
 			err = fmt.Errorf("could not send ICMP Echo Request packet to %s: no interface with outbout source ipv6 found", destinationIP)
 		}
 		if err != nil {
-			gologger.Debug().Msgf("%s\n", err)
+			//gologger.Debug().Msgf("%s\n", err)
 			return
 		}
 		destAddr = &net.UDPAddr{IP: destinationIP, Zone: networkInterface.Name}
