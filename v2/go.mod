@@ -111,3 +111,5 @@ require (
 	gopkg.in/djherbis/times.v1 v1.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/BroNils/projectdiscovery/v2 => github.com/BroNils/naabu/v2 v2.0.0-20231231085008-fae33c60a506
