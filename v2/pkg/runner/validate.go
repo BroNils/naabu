@@ -6,8 +6,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/BroNils/naabu/v2/pkg/privileges"
 	"github.com/pkg/errors"
-	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
 	fileutil "github.com/projectdiscovery/utils/file"
 	iputil "github.com/projectdiscovery/utils/ip"
 	osutil "github.com/projectdiscovery/utils/os"

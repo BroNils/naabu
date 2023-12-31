@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projectdiscovery/naabu/v2/pkg/port"
+	"github.com/BroNils/naabu/v2/pkg/port"
 )
 
 // ConnectVerify is used to verify if ports are accurate using a connect request

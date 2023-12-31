@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BroNils/naabu/v2/pkg/port"
 	"github.com/pkg/errors"
-	"github.com/projectdiscovery/naabu/v2/pkg/port"
 )
 
 // Result contains the result for a host

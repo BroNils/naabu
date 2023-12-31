@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/BroNils/naabu/v2/pkg/runner"
 	_ "github.com/projectdiscovery/fdmax/autofdmax"
-	"github.com/projectdiscovery/naabu/v2/pkg/runner"
 	"os"
 	"os/signal"
 )

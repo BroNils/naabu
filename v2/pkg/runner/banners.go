@@ -1,8 +1,8 @@
 package runner
 
 import (
-	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
-	"github.com/projectdiscovery/naabu/v2/pkg/scan"
+	"github.com/BroNils/naabu/v2/pkg/privileges"
+	"github.com/BroNils/naabu/v2/pkg/scan"
 	osutil "github.com/projectdiscovery/utils/os"
 	updateutils "github.com/projectdiscovery/utils/update"
 	"net"

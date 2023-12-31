@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/projectdiscovery/naabu/v2/pkg/privileges"
-	"github.com/projectdiscovery/naabu/v2/pkg/result"
+	"github.com/BroNils/naabu/v2/pkg/privileges"
+	"github.com/BroNils/naabu/v2/pkg/result"
 	fileutil "github.com/projectdiscovery/utils/file"
 
 	"github.com/projectdiscovery/goflags"

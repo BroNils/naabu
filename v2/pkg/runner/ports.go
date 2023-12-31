@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/BroNils/naabu/v2/pkg/port"
+	"github.com/BroNils/naabu/v2/pkg/protocol"
 	"github.com/pkg/errors"
-	"github.com/projectdiscovery/naabu/v2/pkg/port"
-	"github.com/projectdiscovery/naabu/v2/pkg/protocol"
 )
 
 const portListStrParts = 2
@@ -126,16 +126,16 @@ func excludePorts(options *Options, ports []*port.Port) ([]*port.Port, error) {
 		return nil, fmt.Errorf("could not read exclusion ports: %s", err)
 	}
 
-	for _, port := range ports {
+	for _, port2 := range ports {
 		found := false
 		for _, excludedPort := range excludedPortsCLI {
-			if excludedPort.Port == port.Port && excludedPort.Protocol == port.Protocol {
+			if excludedPort.Port == port2.Port && excludedPort.Protocol == port2.Protocol {
 				found = true
 				break
 			}
 		}
 		if !found {
-			filteredPorts = append(filteredPorts, port)
+			filteredPorts = append(filteredPorts, port2)
 		}
 	}
 	return filteredPorts, nil
@@ -173,28 +173,28 @@ func parsePortsSlice(ranges []string) ([]*port.Port, error) {
 			}
 
 			for i := p1; i <= p2; i++ {
-				port := &port.Port{Port: i, Protocol: portProtocol}
-				ports = append(ports, port)
+				port2 := &port.Port{Port: i, Protocol: portProtocol}
+				ports = append(ports, port2)
 			}
 		} else {
 			portNumber, err := strconv.Atoi(r)
 			if err != nil {
 				return nil, fmt.Errorf("invalid port number: '%s'", r)
 			}
-			port := &port.Port{Port: portNumber, Protocol: portProtocol}
-			ports = append(ports, port)
+			port2 := &port.Port{Port: portNumber, Protocol: portProtocol}
+			ports = append(ports, port2)
 		}
 	}
 
 	// dedupe ports
 	seen := make(map[string]struct{})
 	var dedupedPorts []*port.Port
-	for _, port := range ports {
-		if _, ok := seen[port.String()]; ok {
+	for _, port2 := range ports {
+		if _, ok := seen[port2.String()]; ok {
 			continue
 		}
-		seen[port.String()] = struct{}{}
-		dedupedPorts = append(dedupedPorts, port)
+		seen[port2.String()] = struct{}{}
+		dedupedPorts = append(dedupedPorts, port2)
 	}
 
 	return dedupedPorts, nil
